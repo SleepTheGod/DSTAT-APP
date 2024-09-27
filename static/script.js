@@ -21,13 +21,13 @@ let dstatChart = new Chart(ctx, {
         labels: [], // Will be filled dynamically
         datasets: [
             {
-                label: 'CPU Usage',
+                label: 'CPU Usage (%)',
                 data: [],
                 borderColor: 'rgba(75, 192, 192, 1)',
                 fill: false,
             },
             {
-                label: 'Disk Usage',
+                label: 'Disk Usage (%)',
                 data: [],
                 borderColor: 'rgba(153, 102, 255, 1)',
                 fill: false,
@@ -38,7 +38,17 @@ let dstatChart = new Chart(ctx, {
         responsive: true,
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Usage (%)'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Time (s)'
+                }
             }
         }
     }

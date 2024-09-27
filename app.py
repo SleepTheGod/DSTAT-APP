@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import subprocess
-import json
+import csv
+import os
+import time
 
 app = Flask(__name__)
+LOG_FILE = 'dstat_logs.csv'
 
 @app.route('/')
 def index():
@@ -12,21 +15,38 @@ def index():
 def get_dstat_data():
     ip_address = request.form['ip_address']
     
-    # Command to fetch dstat logs for the given IP (this is a placeholder)
-    command = f"dstat --output dstat_logs.csv --ip {ip_address} 1 10"  # Adjust the command as needed
-
-    # Execute the command
+    # Start dstat to log data (output every second for 10 seconds)
+    command = f"dstat --tcp --udp --output {LOG_FILE} 1 10"
     subprocess.Popen(command, shell=True)
-    
-    # Here, you should process your dstat logs and return the data in a suitable format.
-    # For now, we are returning a dummy response.
-    data = {
-        'time': ['0s', '1s', '2s', '3s', '4s', '5s', '6s', '7s', '8s', '9s'],
-        'cpu': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'disk': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    }
+
+    # Allow time for dstat to generate output
+    time.sleep(11)
+
+    # Read and parse dstat logs
+    data = parse_dstat_logs()
 
     return jsonify(data)
+
+def parse_dstat_logs():
+    time_labels = []
+    cpu_usage = []
+    disk_usage = []
+
+    if os.path.exists(LOG_FILE):
+        with open(LOG_FILE, 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            headers = next(reader)  # Skip header
+
+            for row in reader:
+                time_labels.append(row[0])
+                cpu_usage.append(float(row[1]))
+                disk_usage.append(float(row[2]))
+
+    return {
+        'time': time_labels,
+        'cpu': cpu_usage,
+        'disk': disk_usage
+    }
 
 if __name__ == '__main__':
     app.run(debug=True)
